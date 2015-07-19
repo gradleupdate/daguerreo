@@ -34,7 +34,7 @@ apply plugin: 'idea'
 apply plugin: 'spring-boot' 
 
 ext {
-    javaVersion = 1.8
+    javaVersion = JavaVersion.VERSION_1_8
 }
 
 jar {
@@ -42,8 +42,7 @@ jar {
     version = '0.0.1-SNAPSHOT'
 }
 
-sourceCompatibility = javaVersion
-targetCompatibility = javaVersion
+targetCompatibility = sourceCompatibility = javaVersion
 tasks.withType(AbstractCompile)*.options*.encoding = 'UTF-8'
 
 repositories {
