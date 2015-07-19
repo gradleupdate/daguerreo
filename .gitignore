@@ -32,7 +32,7 @@ gradle-app.setting
 *.iml
 
 ## Directory-based project format:
-.idea/
+.idea/*
 # if you remove the above rule, at least ignore the following:
 
 # User-specific stuff:
@@ -50,6 +50,9 @@ gradle-app.setting
 # Gradle:
 # .idea/gradle.xml
 # .idea/libraries
+
+# Copyright plugin:
+!.idea/copyright/
 
 # Mongo Explorer plugin:
 # .idea/mongoSettings.xml
