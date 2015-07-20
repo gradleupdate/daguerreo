@@ -1,7 +1,12 @@
+# Self specified
+
+## Ignore target directory by code generation.
+
+src/generated/
+
 # Created by https://www.gitignore.io
 
 ### Java ###
-*.class
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
