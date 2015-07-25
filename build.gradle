@@ -36,7 +36,7 @@ buildscript {
 apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'idea'
-apply plugin: 'spring-boot' 
+apply plugin: 'spring-boot'
 
 ext {
     javaVersion = JavaVersion.VERSION_1_8
@@ -101,7 +101,10 @@ task jooqGenerate {
     description = 'Using the source code generation function of jOOQ, it will generate dao, entity, and more from the DB schema.'
     doLast {
         def writer = new StringWriter()
-        new groovy.xml.MarkupBuilder(writer).configuration('xmlns': 'http://www.jooq.org/xsd/jooq-codegen-3.6.0.xsd') {
+        def xml = new groovy.xml.MarkupBuilder(writer)
+        // Workaround to avoid the problem of namespace are duplicated for the property of Gradle.
+        // See: http://stackoverflow.com/questions/7437355/how-to-avoid-outer-scope-values-messing-with-using-the-markupbuilder
+        xml.configuration('xmlns': 'http://www.jooq.org/xsd/jooq-codegen-3.6.0.xsd') {
             jdbc() {
                 driver 'org.h2.Driver'
                 url 'jdbc:h2:file:/tmp/daguerreo'
@@ -110,13 +113,13 @@ task jooqGenerate {
             }
             generator() {
                 database() {
-                    name 'org.jooq.util.h2.H2Database'
+                    xml.name 'org.jooq.util.h2.H2Database'
                     includes '.*'
                     excludes 'schema_version'
                     inputSchema 'PUBLIC'
                 }
                 strategy() {
-//                    name 'org.yukung.daguerreo.util.SingularNamingGeneratorStrategy'
+                    xml.name 'org.yukung.daguerreo.util.SingularNamingGeneratorStrategy'
                 }
                 generate() {
                     daos true

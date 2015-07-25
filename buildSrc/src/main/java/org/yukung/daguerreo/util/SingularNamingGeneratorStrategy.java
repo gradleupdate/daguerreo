@@ -39,12 +39,16 @@ public class SingularNamingGeneratorStrategy extends DefaultGeneratorStrategy {
 
         result.append(StringUtils.toCamelCase(inflector.singularize(definition.getOutputName())));
 
-        if (mode == Mode.RECORD) {
-            result.append("Record");
-        } else if (mode == Mode.DAO) {
-            result.append("Dao");
-        } else if (mode == Mode.INTERFACE) {
-            result.insert(0, "I");
+        switch (mode) {
+            case RECORD:
+                result.append("Record");
+                break;
+            case DAO:
+                result.append("Dao");
+                break;
+            case INTERFACE:
+                result.insert(0, "I");
+                break;
         }
 
         return result.toString();
