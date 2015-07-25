@@ -20,6 +20,7 @@ buildscript {
         h2Version = '1.4.+'
         flywayVersion = '3.2.1'
         jooqVersion = '3.6.2'
+        lombokVersion = '1.16.4'
     }
     repositories {
         mavenCentral()
@@ -50,7 +51,14 @@ jar {
 targetCompatibility = sourceCompatibility = javaVersion
 tasks.withType(AbstractCompile)*.options*.encoding = 'UTF-8'
 
+configurations {
+    provided
+}
+
 sourceSets {
+    main.compileClasspath += configurations.provided
+    test.compileClasspath += configurations.provided
+    test.runtimeClasspath += configurations.provided
     generated {
         compileClasspath = configurations.compile
         runtimeClasspath = output + compileClasspath
@@ -74,6 +82,7 @@ dependencies {
     runtime "com.h2database:h2"
 //    runtime "mysql:mysql-connector-java"
     compile "org.jooq:jooq:${jooqVersion}"
+    provided "org.projectlombok:lombok:${lombokVersion}"
     testCompile "org.springframework.boot:spring-boot-starter-test"
     testCompile "org.spockframework:spock-spring:1.0-groovy-2.4"
 }
@@ -86,6 +95,7 @@ idea {
     }
     module {
         generatedSourceDirs += sourceSets.generated.java.srcDirs
+        scopes.PROVIDED.plus += [configurations.provided]
         downloadJavadoc = true
         downloadSources = true
     }
