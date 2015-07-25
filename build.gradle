@@ -130,6 +130,27 @@ task jooqGenerate {
                     includes '.*'
                     excludes 'schema_version'
                     inputSchema 'PUBLIC'
+                    customTypes() {
+                        ['LocalDate', 'LocalTime', 'LocalDateTime'].each { value ->
+                            customType() {
+                                xml.name value
+                                type "java.time.$value"
+                                converter "org.yukung.daguerreo.infrastructure.util.${value}Converter"
+                            }
+                        }
+                    }
+                    forcedTypes() {
+                        ['LocalDate'    : [/.*\..*_on$/, 'DATE'],
+                         'LocalTime'    : [/.*\..*_at$/, 'TIME'],
+                         'LocalDateTime': [/.*\..*_at$/, 'TIMESTAMP']
+                        ].each { key, value ->
+                            forcedType() {
+                                xml.name key
+                                expression value[0]
+                                types value[1]
+                            }
+                        }
+                    }
                 }
                 strategy() {
                     xml.name 'org.yukung.daguerreo.util.SingularNamingGeneratorStrategy'
