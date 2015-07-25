@@ -17,8 +17,8 @@
 buildscript {
     ext {
         springBootVersion = '1.3.0.M2'
-        jooqVersion = '3.6.2'
         h2Version = '1.4.+'
+        jooqVersion = '3.6.2'
     }
     repositories {
         mavenCentral()
@@ -27,8 +27,8 @@ buildscript {
     }
     dependencies {
         classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
-        classpath "org.jooq:jooq-codegen:${jooqVersion}"
         classpath "com.h2database:h2:${h2Version}"
+        classpath "org.jooq:jooq-codegen:${jooqVersion}"
     }
 }
 
@@ -70,7 +70,10 @@ dependencies {
     compile "org.flywaydb:flyway-core:${flywayVersion}"
     runtime "com.h2database:h2"
 //    runtime "mysql:mysql-connector-java"
+    compile "org.jooq:jooq-codegen:${jooqVersion}"
+    compile "org.modeshape:modeshape-common:4.3.0.Final"
     testCompile "org.springframework.boot:spring-boot-starter-test"
+    testCompile "org.spockframework:spock-spring:1.0-groovy-2.4"
 }
 
 idea {
@@ -113,12 +116,15 @@ task jooqGenerate {
                     excludes 'schema_version'
                     inputSchema 'PUBLIC'
                 }
+                strategy() {
+//                    name 'org.yukung.daguerreo.util.SingularNamingGeneratorStrategy'
+                }
                 generate() {
                     daos true
                     validationAnnotations true
                 }
                 target() {
-                    packageName 'org.yukung.daguerreo.domain'
+                    packageName 'org.yukung.daguerreo.infrastructure'
                     directory 'src/generated/java'
                 }
             }
