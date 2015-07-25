@@ -51,7 +51,10 @@ targetCompatibility = sourceCompatibility = javaVersion
 tasks.withType(AbstractCompile)*.options*.encoding = 'UTF-8'
 
 sourceSets {
-    generated
+    generated {
+        compileClasspath = configurations.compile
+        runtimeClasspath = output + compileClasspath
+    }
 }
 
 repositories {
