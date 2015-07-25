@@ -21,10 +21,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.jooq.util.GeneratorStrategy.Mode.DAO
-import static org.jooq.util.GeneratorStrategy.Mode.DEFAULT
-import static org.jooq.util.GeneratorStrategy.Mode.INTERFACE
-import static org.jooq.util.GeneratorStrategy.Mode.RECORD
+import static org.jooq.util.GeneratorStrategy.Mode.*
 
 /**
  * @author yukung
