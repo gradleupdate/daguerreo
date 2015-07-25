@@ -1,6 +1,8 @@
 Daguerreo
 ====
 
+[![Circle CI](https://circleci.com/gh/yukung/daguerreo.svg?style=shield&circle-token=3b25cc1047f62481807b306c24da8f1b5f953915)](https://circleci.com/gh/yukung/daguerreo)
+
 The web application for personal library catalog that can be shared in your family.
 
 Description
