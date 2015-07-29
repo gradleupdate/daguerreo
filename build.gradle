@@ -30,6 +30,7 @@ buildscript {
     dependencies {
         classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
         classpath "com.h2database:h2:${h2Version}"
+        classpath "org.flywaydb:flyway-gradle-plugin:${flywayVersion}"
         classpath "org.jooq:jooq-codegen:${jooqVersion}"
     }
 }
@@ -127,6 +128,7 @@ project('daguerreo-persistence') {
 
     apply plugin: 'groovy'
     apply plugin: 'spring-boot'
+    apply plugin: 'org.flywaydb.flyway'
 
     [jar, startScripts, distTar, distZip, bootRepackage, bootRun].each {
         it.enabled = false
@@ -138,12 +140,24 @@ project('daguerreo-persistence') {
         compile "org.springframework.boot:spring-boot-starter-validation"
         runtime "com.h2database:h2"
 //        runtime "mysql:mysql-connector-java"
-        compile "org.flywaydb:flyway-core:${flywayVersion}" // TODO flyway プラグインを別途使って gen タスクに引っ掛けたほうが良い？
+        compile "org.flywaydb:flyway-core:${flywayVersion}" // TODO flyway プラグインはアプリケーション起動時に compile で挿せばいいのでここでは不要？
         testCompile "org.codehaus.groovy:groovy-all:2.4.1"
         testCompile "org.spockframework:spock-core:1.0-groovy-2.4"
     }
 
-    task jooqGen {
+    flyway {
+        url = 'jdbc:h2:file:/tmp/daguerreo'
+        user = 'sa'
+    }
+
+    // Workaround to avoid the problem of Flyway Gradle Plugin depends on testClasses.
+    // See: https://github.com/flyway/flyway/issues/775
+    project.afterEvaluate {
+        flywayClean.dependsOn -= testClasses
+        flywayMigrate.dependsOn = [processResources, processTestResources]
+    }
+
+    task jooqGen(dependsOn: flywayMigrate) {
         description = 'Using the source code generation function of jOOQ, it will generate dao, entity, and more from the DB schema.'
 
         doLast {
@@ -207,5 +221,6 @@ project('daguerreo-persistence') {
             )
         }
     }
+    compileJava.dependsOn jooqGen
 
 }
