@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-package org.yukung.daguerreo.util
-
+package org.yukung.daguerreo.infrastructure.generator
 import org.jooq.util.Definition
 import spock.lang.Shared
 import spock.lang.Specification

@@ -14,14 +14,23 @@
  * limitations under the License.
  */
 
-repositories {
-    mavenCentral()
-}
+package org.yukung.daguerreo;
 
-dependencies {
-    compile 'org.jooq:jooq-codegen:3.6.2'
-    compile 'org.modeshape:modeshape-common:4.3.0.Final'
-    testCompile 'org.spockframework:spock-core:1.0-groovy-2.3', {
-        exclude group: 'org.codehaus.groovy'
+import org.junit.Ignore;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.web.WebAppConfiguration;
+
+@RunWith(SpringJUnit4ClassRunner.class)
+@SpringApplicationConfiguration(classes = App.class)
+@WebAppConfiguration
+public class AppTests {
+
+    @Ignore
+    @Test
+    public void contextLoads() {
     }
+
 }

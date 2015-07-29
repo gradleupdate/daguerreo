@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-repositories {
-    mavenCentral()
-}
+package org.yukung.daguerreo;
 
-dependencies {
-    compile 'org.jooq:jooq-codegen:3.6.2'
-    compile 'org.modeshape:modeshape-common:4.3.0.Final'
-    testCompile 'org.spockframework:spock-core:1.0-groovy-2.3', {
-        exclude group: 'org.codehaus.groovy'
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class App {
+
+    public static void main(String[] args) {
+        SpringApplication.run(App.class, args);
     }
 }

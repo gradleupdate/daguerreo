@@ -14,23 +14,17 @@
  * limitations under the License.
  */
 
-package demo;
+package org.yukung.daguerreo.domain.repository;
 
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
+import org.yukung.daguerreo.domain.model.Author;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = DemoApplication.class)
-@WebAppConfiguration
-public class DemoApplicationTests {
+import java.util.Optional;
 
-	@Ignore
-	@Test
-	public void contextLoads() {
-	}
+/**
+ * @author yukung
+ */
+public interface AuthorRepository {
+    Optional<Author> findOne(Long id);
 
+    Author save(Author author);
 }

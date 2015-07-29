@@ -34,57 +34,50 @@ buildscript {
     }
 }
 
-apply plugin: 'java'
-apply plugin: 'eclipse'
-apply plugin: 'idea'
-apply plugin: 'spring-boot'
+allprojects {
+    group = 'org.yukung'
 
-ext {
-    javaVersion = JavaVersion.VERSION_1_8
-}
+    apply plugin: 'eclipse'
+    apply plugin: 'idea'
 
-jar {
-    baseName = 'daguerreo'
-    version = '0.0.1-SNAPSHOT'
-}
-
-targetCompatibility = sourceCompatibility = javaVersion
-tasks.withType(AbstractCompile)*.options*.encoding = 'UTF-8'
-
-configurations {
-    provided
-}
-
-sourceSets {
-    main.compileClasspath += configurations.provided
-    test.compileClasspath += configurations.provided
-    test.runtimeClasspath += configurations.provided
-    generated {
-        compileClasspath = configurations.compile
-        runtimeClasspath = output + compileClasspath
+    ext {
+        javaVersion = JavaVersion.VERSION_1_8
     }
 }
 
-repositories {
-    mavenCentral()
-    maven { url "https://repo.spring.io/snapshot" }
-    maven { url "https://repo.spring.io/milestone" }
-}
+subprojects {
+    apply plugin: 'java'
 
-dependencies {
-    compile "org.springframework.boot:spring-boot-starter-actuator"
-    compile "org.springframework.boot:spring-boot-devtools"
-    compile "org.springframework.boot:spring-boot-starter-jooq"
-    compile "org.springframework.boot:spring-boot-starter-security"
-    compile "org.springframework.boot:spring-boot-starter-thymeleaf"
-    compile "org.springframework.boot:spring-boot-starter-web"
-    compile "org.flywaydb:flyway-core:${flywayVersion}"
-    runtime "com.h2database:h2"
-//    runtime "mysql:mysql-connector-java"
-    compile "org.jooq:jooq:${jooqVersion}"
-    provided "org.projectlombok:lombok:${lombokVersion}"
-    testCompile "org.springframework.boot:spring-boot-starter-test"
-    testCompile "org.spockframework:spock-spring:1.0-groovy-2.4"
+    targetCompatibility = sourceCompatibility = javaVersion
+    tasks.withType(AbstractCompile)*.options*.encoding = 'UTF-8'
+
+    configurations {
+        provided
+    }
+
+    repositories {
+        mavenCentral()
+        maven { url "https://repo.spring.io/snapshot" }
+        maven { url "https://repo.spring.io/milestone" }
+    }
+
+    idea {
+        module {
+            scopes.PROVIDED.plus += [configurations.provided]
+            downloadJavadoc = true
+            downloadSources = true
+        }
+    }
+
+    eclipse {
+        classpath {
+            containers.remove('org.eclipse.jdt.launching.JRE_CONTAINER')
+            containers 'org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8'
+            plusConfigurations += [configurations.provided]
+            downloadJavadoc = true
+            downloadSources = true
+        }
+    }
 }
 
 idea {
@@ -93,87 +86,126 @@ idea {
         languageLevel = javaVersion
         vcs = 'Git'
     }
-    module {
-        generatedSourceDirs += sourceSets.generated.java.srcDirs
-        scopes.PROVIDED.plus += [configurations.provided]
-        downloadJavadoc = true
-        downloadSources = true
-    }
-}
-
-eclipse {
-    classpath {
-        containers.remove('org.eclipse.jdt.launching.JRE_CONTAINER')
-        containers 'org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8'
-        downloadJavadoc = true
-        downloadSources = true
-    }
-}
-
-task jooqGenerate {
-    description = 'Using the source code generation function of jOOQ, it will generate dao, entity, and more from the DB schema.'
-    doLast {
-        def writer = new StringWriter()
-        def xml = new groovy.xml.MarkupBuilder(writer)
-        // Workaround to avoid the problem of namespace are duplicated for the property of Gradle.
-        // See: http://stackoverflow.com/questions/7437355/how-to-avoid-outer-scope-values-messing-with-using-the-markupbuilder
-        xml.configuration('xmlns': 'http://www.jooq.org/xsd/jooq-codegen-3.6.0.xsd') {
-            jdbc() {
-                driver 'org.h2.Driver'
-                url 'jdbc:h2:file:/tmp/daguerreo'
-                user 'sa'
-                password ''
-            }
-            generator() {
-                database() {
-                    xml.name 'org.jooq.util.h2.H2Database'
-                    includes '.*'
-                    excludes 'schema_version'
-                    inputSchema 'PUBLIC'
-                    customTypes() {
-                        ['LocalDate', 'LocalTime', 'LocalDateTime'].each { value ->
-                            customType() {
-                                xml.name value
-                                type "java.time.$value"
-                                converter "org.yukung.daguerreo.infrastructure.util.${value}Converter"
-                            }
-                        }
-                    }
-                    forcedTypes() {
-                        ['LocalDate'    : [/.*\..*_on$/, 'DATE'],
-                         'LocalTime'    : [/.*\..*_at$/, 'TIME'],
-                         'LocalDateTime': [/.*\..*_at$/, 'TIMESTAMP']
-                        ].each { key, value ->
-                            forcedType() {
-                                xml.name key
-                                expression value[0]
-                                types value[1]
-                            }
-                        }
-                    }
-                }
-                strategy() {
-                    xml.name 'org.yukung.daguerreo.util.SingularNamingGeneratorStrategy'
-                }
-                generate() {
-                    daos true
-                    validationAnnotations true
-                }
-                target() {
-                    packageName 'org.yukung.daguerreo.infrastructure'
-                    directory 'src/generated/java'
-                }
-            }
-        }
-        org.jooq.util.GenerationTool.generate(
-                javax.xml.bind.JAXB.unmarshal(
-                        new StringReader(writer.toString()),
-                        org.jooq.util.jaxb.Configuration.class
-                )
-        )
-    }
 }
 
 task wrapper(type: Wrapper) {
     gradleVersion = '2.5'
+}
+
+project('daguerreo-domain') {
+    description = 'Daguerreo domain layer'
+
+    apply plugin: 'spring-boot'
+
+    jar {
+        baseName = 'daguerreo-domain'
+        version = '0.0.1-SNAPSHOT'
+    }
+
+    sourceSets {
+        main.compileClasspath += configurations.provided
+        test.compileClasspath += configurations.provided
+        test.runtimeClasspath += configurations.provided
+    }
+
+    dependencies {
+        compile "org.springframework.boot:spring-boot-starter-actuator"
+        compile "org.springframework.boot:spring-boot-devtools"
+        compile "org.springframework.boot:spring-boot-starter-security"
+        compile "org.springframework.boot:spring-boot-starter-thymeleaf"
+        compile "org.springframework.boot:spring-boot-starter-web"
+        provided "org.projectlombok:lombok:${lombokVersion}"
+        testCompile "org.springframework.boot:spring-boot-starter-test"
+        testCompile "org.springframework.boot:spring-boot-starter-jdbc"
+        testCompile "org.spockframework:spock-spring:1.0-groovy-2.4"
+    }
+
+}
+
+project('daguerreo-persistence') {
+    description = 'Daguerreo persistence layer'
+
+    apply plugin: 'groovy'
+    apply plugin: 'spring-boot'
+
+    [jar, startScripts, distTar, distZip, bootRepackage, bootRun].each {
+        it.enabled = false
+    }   // TODO もう少しスマートな方法を探る
+
+    dependencies {
+        compile project(':daguerreo-domain')
+        compile "org.springframework.boot:spring-boot-starter-jooq"
+        compile "org.springframework.boot:spring-boot-starter-validation"
+        runtime "com.h2database:h2"
+//        runtime "mysql:mysql-connector-java"
+        compile "org.flywaydb:flyway-core:${flywayVersion}" // TODO flyway プラグインを別途使って gen タスクに引っ掛けたほうが良い？
+        testCompile "org.codehaus.groovy:groovy-all:2.4.1"
+        testCompile "org.spockframework:spock-core:1.0-groovy-2.4"
+    }
+
+    task jooqGen {
+        description = 'Using the source code generation function of jOOQ, it will generate dao, entity, and more from the DB schema.'
+
+        doLast {
+            def writer = new StringWriter()
+            def xml = new groovy.xml.MarkupBuilder(writer)
+            // Workaround to avoid the problem of namespace are duplicated for the property of Gradle.
+            // See: http://stackoverflow.com/questions/7437355/how-to-avoid-outer-scope-values-messing-with-using-the-markupbuilder
+            xml.configuration('xmlns': 'http://www.jooq.org/xsd/jooq-codegen-3.6.0.xsd') {
+                jdbc() {
+                    driver 'org.h2.Driver'
+                    url 'jdbc:h2:file:/tmp/daguerreo'
+                    user 'sa'
+                    password ''
+                }
+                generator() {
+                    database() {
+                        xml.name 'org.jooq.util.h2.H2Database'
+                        includes '.*'
+                        excludes 'schema_version'
+                        inputSchema 'PUBLIC'
+                        customTypes() {
+                            ['LocalDate', 'LocalTime', 'LocalDateTime'].each { value ->
+                                customType() {
+                                    xml.name value
+                                    type "java.time.$value"
+                                    converter "org.yukung.daguerreo.infrastructure.util.${value}Converter"
+                                }
+                            }
+                        }
+                        forcedTypes() {
+                            ['LocalDate'    : [/.*\..*_on$/, 'DATE'],
+                             'LocalTime'    : [/.*\..*_at$/, 'TIME'],
+                             'LocalDateTime': [/.*\..*_at$/, 'TIMESTAMP']
+                            ].each { key, value ->
+                                forcedType() {
+                                    xml.name key
+                                    expression value[0]
+                                    types value[1]
+                                }
+                            }
+                        }
+                    }
+                    strategy() {
+                        xml.name 'org.yukung.daguerreo.infrastructure.generator.SingularNamingGeneratorStrategy'
+                    }
+                    generate() {
+                        daos true
+                        validationAnnotations true
+                    }
+                    target() {
+                        packageName 'org.yukung.daguerreo.infrastructure.generated'
+                        directory "$projectDir/src/main/java"
+                    }
+                }
+            }
+            org.jooq.util.GenerationTool.generate(
+                    javax.xml.bind.JAXB.unmarshal(
+                            new StringReader(writer.toString()),
+                            org.jooq.util.jaxb.Configuration.class
+                    )
+            )
+        }
+    }
+
 }

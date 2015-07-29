@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.yukung.daguerreo.util;
+package org.yukung.daguerreo.infrastructure.generator;
 
 import org.jooq.tools.StringUtils;
 import org.jooq.util.DefaultGeneratorStrategy;
