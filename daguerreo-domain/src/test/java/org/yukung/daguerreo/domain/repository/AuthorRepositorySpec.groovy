@@ -16,25 +16,34 @@
 
 package org.yukung.daguerreo.domain.repository
 
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.SpringApplicationConfiguration
-import org.springframework.test.annotation.Rollback
-import org.springframework.transaction.annotation.Transactional
-import org.yukung.daguerreo.App
 import org.yukung.daguerreo.domain.model.Author
 import spock.lang.Specification
 
 /**
  * @author yukung
  */
-@SpringApplicationConfiguration(classes = App.class)
 class AuthorRepositorySpec extends Specification {
 
-    @Autowired
     AuthorRepository repository
 
-    @Transactional
-    @Rollback
+    def setup() {
+        def stub1 = new Author(id: 1, name: '宮沢賢治')
+        def stub2 = new Author(id: 2, name: '川端康成')
+        def stub3 = new Author(id: 3, name: '芥川龍之介')
+        def mock = Mock(AuthorRepository)
+        mock.save(new Author(id: null, name: '宮沢賢治')) >> stub1
+        mock.save(new Author(id: null, name: '川端康成')) >> stub2
+        mock.save(new Author(id: null, name: '芥川龍之介')) >> stub3
+        mock.findOne(1L) >> Optional.of(stub1)
+        mock.findOne(2L) >> Optional.of(stub2)
+        mock.findOne(3L) >> Optional.empty()
+        mock.findAll() >> [stub1, stub2, stub3]
+        mock.count() >> [stub1, stub2, stub3].size()
+        mock.exists(stub2.id) >> true
+        mock.exists(stub3.id) >> false
+        repository = mock
+    }
+
     def "should be registered a author"() {
         given:
         def author = new Author(id: null, name: '宮沢賢治')
@@ -44,5 +53,87 @@ class AuthorRepositorySpec extends Specification {
 
         then:
         repository.findOne(actual.id).present
+    }
+
+    def "should be updated the author"() {
+        given:
+        def author = repository.save(new Author(id: null, name: '川端康成'))
+        def expected = '芥川龍之介'
+        author.name = expected
+
+        when:
+        repository.save(author)
+
+        then:
+        def result = repository.findOne(author.id)
+        result.present
+
+        result.map { e -> e.name }.orElse("") == expected
+    }
+
+    def "should be deleted the author"() {
+        given:
+        def author = repository.save(new Author(id: null, name: '芥川龍之介'))
+        def id = author.id
+
+        when:
+        repository.delete(id)
+
+        then:
+        !repository.findOne(id).present
+    }
+
+    def "should be deleted the author by specified object"() {
+        given:
+        def author = repository.save(new Author(id: null, name: '芥川龍之介'))
+        def id = author.id
+
+        when:
+        repository.delete(author)
+
+        then:
+        !repository.findOne(id).present
+    }
+
+    def "should be find all authors"() {
+        given:
+        def authors = [new Author(id: null, name: '宮沢賢治'), new Author(id: null, name: '川端康成'), new Author(id: null, name: '芥川龍之介')]
+        authors.each { repository.save(it) }
+
+        when:
+        List<Author> results = repository.findAll()
+
+        then:
+        results.eachWithIndex { Author result, i -> result.equals(authors[i]) }
+    }
+
+    def "should be to count the number of authors"() {
+        given:
+        def authors = [new Author(id: null, name: '宮沢賢治'), new Author(id: null, name: '川端康成'), new Author(id: null, name: '芥川龍之介')]
+        authors.each { repository.save(it) }
+
+        when:
+        def count = repository.count()
+
+        then:
+        count == 3L
+    }
+
+    def "should be exists by specified object"() {
+        given:
+        def existsAuthor = repository.save(new Author(id: null, name: '川端康成'))
+        def notExistsAuthor = new Author(id: 3, name: '芥川龍之介')
+
+        when:
+        boolean result = repository.exists(existsAuthor.id)
+
+        then:
+        result
+
+        when:
+        result = repository.exists(notExistsAuthor.id)
+
+        then:
+        !result
     }
 }

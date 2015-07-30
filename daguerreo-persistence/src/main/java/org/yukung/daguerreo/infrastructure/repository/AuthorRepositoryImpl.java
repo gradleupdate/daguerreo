@@ -21,12 +21,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.yukung.daguerreo.domain.model.Author;
 import org.yukung.daguerreo.domain.repository.AuthorRepository;
-import org.yukung.daguerreo.infrastructure.generated.tables.daos.AuthorDao;
-import org.yukung.daguerreo.infrastructure.generated.tables.records.AuthorRecord;
 
+import java.util.List;
 import java.util.Optional;
-
-import static org.yukung.daguerreo.infrastructure.generated.Tables.*;
 
 /**
  * @author yukung
@@ -39,15 +36,35 @@ public class AuthorRepositoryImpl implements AuthorRepository {
 
     @Override
     public Optional<Author> findOne(Long id) {
-        AuthorDao dao = new AuthorDao(dsl.configuration());
-//        return Optional.of(dao.findById(id));
-        return Optional.of(new Author());
+        return Optional.empty();
+    }
+
+    @Override
+    public List<Author> findAll() {
+        return null;
     }
 
     @Override
     public Author save(Author author) {
-        AuthorRecord authorRecord = dsl.newRecord(AUTHOR, author);
-        authorRecord.store();
-        return authorRecord.into(Author.class);
+        return null;
+    }
+
+    @Override
+    public void delete(Long id) {
+    }
+
+    @Override
+    public void delete(Author author) {
+
+    }
+
+    @Override
+    public long count() {
+        return 0;
+    }
+
+    @Override
+    public boolean exists(Long id) {
+        return false;
     }
 }
