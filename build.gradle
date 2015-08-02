@@ -96,11 +96,11 @@ task wrapper(type: Wrapper) {
 project('daguerreo-domain') {
     description = 'Daguerreo domain layer'
 
-    apply plugin: 'spring-boot'
+    apply plugin: 'groovy'
 
     jar {
-        baseName = 'daguerreo-domain'
-        version = '0.0.1-SNAPSHOT'
+        baseName = project.name
+        version = project.version
     }
 
     sourceSets {
@@ -110,15 +110,9 @@ project('daguerreo-domain') {
     }
 
     dependencies {
-        compile "org.springframework.boot:spring-boot-starter-actuator"
-        compile "org.springframework.boot:spring-boot-devtools"
-        compile "org.springframework.boot:spring-boot-starter-security"
-        compile "org.springframework.boot:spring-boot-starter-thymeleaf"
-        compile "org.springframework.boot:spring-boot-starter-web"
         provided "org.projectlombok:lombok:${lombokVersion}"
-        testCompile "org.springframework.boot:spring-boot-starter-test"
-        testCompile "org.springframework.boot:spring-boot-starter-jdbc"
-        testCompile "org.spockframework:spock-spring:1.0-groovy-2.4"
+        testCompile "org.codehaus.groovy:groovy-all:2.4.1"
+        testCompile "org.spockframework:spock-core:1.0-groovy-2.4"
     }
 
 }
@@ -140,7 +134,7 @@ project('daguerreo-persistence') {
         compile "org.springframework.boot:spring-boot-starter-validation"
         runtime "com.h2database:h2"
 //        runtime "mysql:mysql-connector-java"
-        compile "org.flywaydb:flyway-core:${flywayVersion}" // TODO flyway プラグインはアプリケーション起動時に compile で挿せばいいのでここでは不要？
+//        compile "org.flywaydb:flyway-core:${flywayVersion}" // TODO flywayMigrate は Gradle Plugin で代替する
         testCompile "org.codehaus.groovy:groovy-all:2.4.1"
         testCompile "org.spockframework:spock-core:1.0-groovy-2.4"
     }
@@ -222,5 +216,25 @@ project('daguerreo-persistence') {
         }
     }
     compileJava.dependsOn jooqGen
+}
 
+project('daguerreo-backend-api') {
+    description = 'Daguerreo backend REST API'
+
+    apply plugin: 'spring-boot'
+
+    jar {
+        baseName = project.name
+        version = project.version
+    }
+
+    dependencies {
+        runtime project(':daguerreo-persistence')
+        compile "org.springframework.boot:spring-boot-starter-actuator"
+        compile "org.springframework.boot:spring-boot-devtools"
+        compile "org.springframework.boot:spring-boot-starter-security"
+        compile "org.springframework.boot:spring-boot-starter-thymeleaf"
+        compile "org.springframework.boot:spring-boot-starter-web"
+        testCompile "org.springframework.boot:spring-boot-starter-test"
+    }
 }
