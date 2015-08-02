@@ -47,7 +47,7 @@ allprojects {
 }
 
 subprojects {
-    apply plugin: 'java'
+    apply plugin: 'groovy'  // Groovy plugin that contains Java plugin, It's not necessary to specify the Java Plugin.
 
     targetCompatibility = sourceCompatibility = javaVersion
     tasks.withType(AbstractCompile)*.options*.encoding = 'UTF-8'
@@ -96,8 +96,6 @@ task wrapper(type: Wrapper) {
 project('daguerreo-domain') {
     description = 'Daguerreo domain layer'
 
-    apply plugin: 'groovy'
-
     jar {
         baseName = project.name
         version = project.version
@@ -120,7 +118,6 @@ project('daguerreo-domain') {
 project('daguerreo-persistence') {
     description = 'Daguerreo persistence layer'
 
-    apply plugin: 'groovy'
     apply plugin: 'spring-boot'
     apply plugin: 'org.flywaydb.flyway'
 
