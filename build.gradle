@@ -101,11 +101,6 @@ task wrapper(type: Wrapper) {
 project('daguerreo-domain') {
     description = 'Daguerreo domain layer'
 
-    jar {
-        baseName = project.name
-        version = project.version
-    }
-
     sourceSets {
         main.compileClasspath += configurations.provided
         test.compileClasspath += configurations.provided
@@ -227,7 +222,6 @@ project('daguerreo-backend-api') {
     }
 
     dependencies {
-        runtime project(':daguerreo-persistence')
         compile "org.springframework.boot:spring-boot-starter-actuator"
         compile "org.springframework.boot:spring-boot-devtools"
         compile "org.springframework.boot:spring-boot-starter-security"
