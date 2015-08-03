@@ -48,6 +48,7 @@ allprojects {
 
 subprojects {
     apply plugin: 'groovy'  // Groovy plugin that contains Java plugin, It's not necessary to specify the Java Plugin.
+    apply plugin: 'spring-boot'
 
     targetCompatibility = sourceCompatibility = javaVersion
     tasks.withType(AbstractCompile)*.options*.encoding = 'UTF-8'
@@ -84,6 +85,24 @@ subprojects {
             downloadSources = true
         }
     }
+
+    /*
+     * Behavior of Gradle Application Plugin has been changed from 2.3,
+     * will also change the behavior of the Spring Boot Plugin by its influence,
+     * mainClass the distribution of tasks are executed even if you disable the bootRepackage task
+     * because it has not been specified build fails.
+     *
+     * This you want to disable the distribution of tasks as a work-around.
+     * This issue is expected to be fix in Spring Boot 1.3.0.M3.
+     *
+     * See this issue for more information: https://github.com/spring-projects/spring-boot/issues/2679
+     */
+    gradle.taskGraph.whenReady { graph ->
+        def badTasks = ['findMainClass', 'startScripts', 'distTar', 'distZip']
+        graph.allTasks.findAll {it.name in badTasks}.each { task ->
+            task.enabled = false
+        }
+    }
 }
 
 idea {
@@ -101,6 +120,8 @@ task wrapper(type: Wrapper) {
 project('daguerreo-domain') {
     description = 'Daguerreo domain layer'
 
+    bootRepackage.enabled = false
+
     sourceSets {
         main.compileClasspath += configurations.provided
         test.compileClasspath += configurations.provided
@@ -108,6 +129,7 @@ project('daguerreo-domain') {
     }
 
     dependencies {
+        compile "org.springframework.boot:spring-boot-starter"
         provided "org.projectlombok:lombok:${lombokVersion}"
     }
 
@@ -116,12 +138,9 @@ project('daguerreo-domain') {
 project('daguerreo-persistence') {
     description = 'Daguerreo persistence layer'
 
-    apply plugin: 'spring-boot'
     apply plugin: 'org.flywaydb.flyway'
 
-    [jar, startScripts, distTar, distZip, bootRepackage, bootRun].each {
-        it.enabled = false
-    }   // TODO もう少しスマートな方法を探る
+    bootRepackage.enabled = false
 
     dependencies {
         compile project(':daguerreo-domain')
