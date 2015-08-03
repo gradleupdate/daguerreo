@@ -48,7 +48,6 @@ allprojects {
 
 subprojects {
     apply plugin: 'groovy'  // Groovy plugin that contains Java plugin, It's not necessary to specify the Java Plugin.
-    apply plugin: 'spring-boot'
 
     targetCompatibility = sourceCompatibility = javaVersion
     tasks.withType(AbstractCompile)*.options*.encoding = 'UTF-8'
@@ -61,12 +60,6 @@ subprojects {
         mavenCentral()
         maven { url "https://repo.spring.io/snapshot" }
         maven { url "https://repo.spring.io/milestone" }
-    }
-
-    dependencies {
-        testCompile "org.springframework.boot:spring-boot-starter-test"
-        testCompile "org.codehaus.groovy:groovy-all:2.4.1"
-        testCompile "org.spockframework:spock-spring:1.0-groovy-2.4"
     }
 
     idea {
@@ -98,10 +91,13 @@ subprojects {
      *
      * See this issue for more information: https://github.com/spring-projects/spring-boot/issues/2679
      */
-    gradle.taskGraph.whenReady { graph ->
-        def badTasks = ['findMainClass', 'startScripts', 'distTar', 'distZip']
-        graph.allTasks.findAll {it.name in badTasks}.each { task ->
-            task.enabled = false
+    afterEvaluate { subproject ->
+        if (subproject.name != 'daguerreo-backend-api') {
+            subproject.tasks.matching {
+                it.name in ['findMainClass', 'startScripts', 'distTar', 'distZip']
+            }.each { task ->
+                task.enabled = false
+            }
         }
     }
 }
@@ -118,53 +114,40 @@ task wrapper(type: Wrapper) {
     gradleVersion = '2.5'
 }
 
-project('daguerreo-domain') {
-    description = 'Daguerreo domain layer'
+project('daguerreo-initdb') {
+    description = 'Daguerreo initialize database'
 
-    bootRepackage.enabled = false
-
-    sourceSets {
-        main.compileClasspath += configurations.provided
-        test.compileClasspath += configurations.provided
-        test.runtimeClasspath += configurations.provided
-    }
-
-    dependencies {
-        compile "org.springframework.boot:spring-boot-starter"
-        provided "org.projectlombok:lombok:${lombokVersion}"
-    }
-
-}
-
-project('daguerreo-persistence') {
-    description = 'Daguerreo persistence layer'
+    jar.enabled = false
 
     apply plugin: 'org.flywaydb.flyway'
-
-    bootRepackage.enabled = false
-
-    dependencies {
-        compile project(':daguerreo-domain')
-        compile "org.springframework.boot:spring-boot-starter-jooq"
-        compile "org.springframework.boot:spring-boot-starter-validation"
-        runtime "com.h2database:h2"
-//        runtime "mysql:mysql-connector-java"
-//        compile "org.flywaydb:flyway-core:${flywayVersion}" // TODO flywayMigrate は Gradle Plugin で代替する
-    }
 
     flyway {
         url = 'jdbc:h2:file:/tmp/daguerreo'
         user = 'sa'
     }
 
-    // Workaround to avoid the problem of Flyway Gradle Plugin depends on testClasses.
-    // See: https://github.com/flyway/flyway/issues/775
-    project.afterEvaluate {
-        flywayClean.dependsOn -= testClasses
-        flywayMigrate.dependsOn = [processResources, processTestResources]
+    flywayMigrate.mustRunAfter build
+}
+
+project('daguerreo-persistence') {
+    description = 'Daguerreo persistence layer'
+
+    apply plugin: 'spring-boot'
+
+    jar.enabled = false
+    bootRepackage.enabled = false
+
+    dependencies {
+        compile "org.springframework.boot:spring-boot-starter-jooq"
+        compile "org.springframework.boot:spring-boot-starter-validation"
+        runtime "com.h2database:h2"
+//        runtime "mysql:mysql-connector-java"
+        testCompile "org.springframework.boot:spring-boot-starter-test"
+        testCompile "org.codehaus.groovy:groovy-all:2.4.1"
+        testCompile "org.spockframework:spock-spring:1.0-groovy-2.4"
     }
 
-    task jooqGen(dependsOn: flywayMigrate) {
+    task jooqGen(dependsOn: ':daguerreo-initdb:flywayMigrate') {
         description = 'Using the source code generation function of jOOQ, it will generate dao, entity, and more from the DB schema.'
 
         doLast {
@@ -228,7 +211,32 @@ project('daguerreo-persistence') {
             )
         }
     }
+
     compileJava.dependsOn jooqGen
+}
+
+project('daguerreo-domain') {
+    description = 'Daguerreo domain layer'
+
+    apply plugin: 'spring-boot'
+
+    bootRepackage.enabled = false
+
+    sourceSets {
+        main.compileClasspath += configurations.provided
+        test.compileClasspath += configurations.provided
+        test.runtimeClasspath += configurations.provided
+    }
+
+    dependencies {
+        compile project(':daguerreo-persistence')
+        provided "org.projectlombok:lombok:${lombokVersion}"
+        testCompile "org.springframework.boot:spring-boot-starter-test"
+        testCompile "org.codehaus.groovy:groovy-all:2.4.1"
+        testCompile "org.spockframework:spock-spring:1.0-groovy-2.4"
+    }
+
+    compileJava.dependsOn ':daguerreo-persistence:build'
 }
 
 project('daguerreo-backend-api') {
@@ -242,10 +250,16 @@ project('daguerreo-backend-api') {
     }
 
     dependencies {
+        compile project(':daguerreo-domain')
         compile "org.springframework.boot:spring-boot-starter-actuator"
         compile "org.springframework.boot:spring-boot-devtools"
         compile "org.springframework.boot:spring-boot-starter-security"
         compile "org.springframework.boot:spring-boot-starter-thymeleaf"
         compile "org.springframework.boot:spring-boot-starter-web"
+        testCompile "org.springframework.boot:spring-boot-starter-test"
+        testCompile "org.codehaus.groovy:groovy-all:2.4.1"
+        testCompile "org.spockframework:spock-spring:1.0-groovy-2.4"
     }
+
+    compileJava.dependsOn ':daguerreo-domain:build'
 }

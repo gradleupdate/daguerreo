@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package org.yukung.daguerreo.infrastructure.repository;
+package org.yukung.daguerreo.domain.repository;
 
 import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.yukung.daguerreo.domain.model.Author;
-import org.yukung.daguerreo.domain.repository.AuthorRepository;
 
 import java.util.List;
 import java.util.Optional;

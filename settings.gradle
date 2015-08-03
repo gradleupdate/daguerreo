@@ -15,4 +15,8 @@
  */
 
 rootProject.name = 'daguerreo'
-include 'daguerreo-domain', 'daguerreo-persistence', 'daguerreo-backend-api'
+
+include 'daguerreo-initdb'
+include 'daguerreo-domain'
+include 'daguerreo-persistence'
+include 'daguerreo-backend-api'
