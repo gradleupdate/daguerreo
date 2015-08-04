@@ -149,6 +149,8 @@ project('daguerreo-persistence') {
     task jooqGen(dependsOn: ':daguerreo-initdb:flywayMigrate') {
         description = 'Using the source code generation function of jOOQ, it will generate dao, entity, and more from the DB schema.'
 
+        inputs.dir file("${project(':daguerreo-initdb').buildDir}/resources/main/db/migration")
+        outputs.dir file("$projectDir/src/main/java/org/yukung/daguerreo/infrastructure/generated")
         doLast {
             def writer = new StringWriter()
             def xml = new groovy.xml.MarkupBuilder(writer)
