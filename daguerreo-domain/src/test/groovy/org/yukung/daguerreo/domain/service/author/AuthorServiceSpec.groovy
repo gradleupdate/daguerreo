@@ -14,19 +14,23 @@
  * limitations under the License.
  */
 
-package org.yukung.daguerreo.domain.repository
+package org.yukung.daguerreo.domain.service.author
 
 import org.yukung.daguerreo.domain.model.Author
+import org.yukung.daguerreo.domain.repository.author.AuthorRepository
+import spock.lang.Ignore
 import spock.lang.Specification
 
 /**
  * @author yukung
  */
-class AuthorRepositorySpec extends Specification {
+@Ignore
+// FIXME
+class AuthorServiceSpec extends Specification {
 
     AuthorRepository repository
 
-    def setup() {
+    void setup() {
         def stub1 = new Author(id: 1, name: '宮沢賢治')
         def stub2 = new Author(id: 2, name: '川端康成')
         def stub3 = new Author(id: 3, name: '芥川龍之介')
@@ -42,6 +46,9 @@ class AuthorRepositorySpec extends Specification {
         mock.exists(stub2.id) >> true
         mock.exists(stub3.id) >> false
         repository = mock
+    }
+
+    void cleanup() {
     }
 
     def "should be registered a author"() {

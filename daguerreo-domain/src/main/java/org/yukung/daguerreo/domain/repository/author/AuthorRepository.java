@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.yukung.daguerreo.domain.repository;
+package org.yukung.daguerreo.domain.repository.author;
 
 import org.yukung.daguerreo.domain.model.Author;
 

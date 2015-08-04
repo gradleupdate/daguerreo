@@ -14,15 +14,18 @@
  * limitations under the License.
  */
 
-package org.yukung.daguerreo.domain.repository;
+package org.yukung.daguerreo.domain.repository.author;
 
 import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.yukung.daguerreo.domain.model.Author;
+import org.yukung.daguerreo.infrastructure.generated.tables.records.AuthorRecord;
 
 import java.util.List;
 import java.util.Optional;
+
+import static org.yukung.daguerreo.infrastructure.generated.tables.Author.*;
 
 /**
  * @author yukung
@@ -35,7 +38,10 @@ public class AuthorRepositoryImpl implements AuthorRepository {
 
     @Override
     public Optional<Author> findOne(Long id) {
-        return Optional.empty();
+        Author author = dsl.selectFrom(AUTHOR)
+                .where(AUTHOR.ID.eq(id))
+                .fetchOneInto(Author.class);
+        return Optional.ofNullable(author);
     }
 
     @Override
@@ -45,7 +51,18 @@ public class AuthorRepositoryImpl implements AuthorRepository {
 
     @Override
     public Author save(Author author) {
-        return null;
+        AuthorRecord authorRecord;
+        if (author.getId() == null) {
+            authorRecord = dsl.newRecord(AUTHOR, author);
+        } else {
+            authorRecord = dsl.fetchOne(AUTHOR, AUTHOR.ID.equal(author.getId()));
+            if (authorRecord == null) {
+                return null;
+            }
+            authorRecord.from(author);
+        }
+        authorRecord.store();
+        return authorRecord.into(Author.class);
     }
 
     @Override

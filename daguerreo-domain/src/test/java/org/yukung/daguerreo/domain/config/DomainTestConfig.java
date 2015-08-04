@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package org.yukung.daguerreo.domain.service.author
+package org.yukung.daguerreo.domain.config;
 
-import spock.lang.Specification
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 /**
- * @author yukung
+ * @author Yusuke Ikeda
  */
-class AuthorServiceTest extends Specification {
-    void setup() {
-
-    }
-
-    void cleanup() {
-
-    }
+@Profile("test")
+@Configuration
+@EnableAutoConfiguration
+@ComponentScan("org.yukung.daguerreo.domain")
+public class DomainTestConfig {
 }
