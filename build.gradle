@@ -134,7 +134,6 @@ project('daguerreo-persistence') {
 
     apply plugin: 'spring-boot'
 
-    jar.enabled = false
     bootRepackage.enabled = false
 
     dependencies {
