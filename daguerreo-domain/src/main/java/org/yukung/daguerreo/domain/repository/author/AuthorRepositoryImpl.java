@@ -46,7 +46,8 @@ public class AuthorRepositoryImpl implements AuthorRepository {
 
     @Override
     public List<Author> findAll() {
-        return null;
+        return dsl.selectFrom(AUTHOR)
+                .fetchInto(Author.class);
     }
 
     @Override
@@ -67,20 +68,28 @@ public class AuthorRepositoryImpl implements AuthorRepository {
 
     @Override
     public void delete(Long id) {
+        dsl.deleteFrom(AUTHOR)
+                .where(AUTHOR.ID.eq(id))
+                .execute();
     }
 
     @Override
     public void delete(Author author) {
-
+        delete(author.getId());
     }
 
     @Override
     public long count() {
-        return 0;
+        return dsl.selectCount()
+                .from(AUTHOR)
+                .fetchOneInto(Long.class);
     }
 
     @Override
     public boolean exists(Long id) {
-        return false;
+        return dsl.selectCount()
+                .from(AUTHOR)
+                .where(AUTHOR.ID.eq(id))
+                .fetchOneInto(Integer.class) > 0;
     }
 }
