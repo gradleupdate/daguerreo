@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.yukung.daguerreo.domain.repository;
+package org.yukung.daguerreo.domain.repository.publisher;
 
-import org.yukung.daguerreo.domain.model.Book;
+import org.yukung.daguerreo.domain.model.Publisher;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,17 +24,17 @@ import java.util.Optional;
 /**
  * @author yukung
  */
-public interface BookRepository {
+public interface PublisherRepository {
 
-    Optional<Book> findOne(Long id);
+    Optional<Publisher> findOne(Long id);
 
-    List<Book> findAll();
+    List<Publisher> findAll();
 
-    Book save(Book book);
+    Publisher save(Publisher publisher);
 
     void delete(Long id);
 
-    void delete(Book book);
+    void delete(Publisher publisher);
 
     long count();
 
