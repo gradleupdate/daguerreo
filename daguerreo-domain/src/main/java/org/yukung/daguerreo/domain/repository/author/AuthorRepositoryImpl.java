@@ -56,7 +56,7 @@ public class AuthorRepositoryImpl implements AuthorRepository {
         if (author.getId() == null) {
             authorRecord = dsl.newRecord(AUTHOR, author);
         } else {
-            authorRecord = dsl.fetchOne(AUTHOR, AUTHOR.ID.equal(author.getId()));
+            authorRecord = dsl.fetchOne(AUTHOR, AUTHOR.ID.eq(author.getId()));
             if (authorRecord == null) {
                 return null;
             }

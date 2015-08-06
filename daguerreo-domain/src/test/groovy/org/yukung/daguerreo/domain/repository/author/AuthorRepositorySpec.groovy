@@ -37,12 +37,6 @@ class AuthorRepositorySpec extends Specification {
     @Autowired
     AuthorRepository repository
 
-    def setup() {
-    }
-
-    def cleanup() {
-    }
-
     @Rollback
     def "should be registered a author"() {
         given:
