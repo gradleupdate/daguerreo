@@ -18,6 +18,7 @@ package org.yukung.daguerreo.domain.repository.publisher;
 
 import org.yukung.daguerreo.domain.model.Publisher;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,11 +31,17 @@ public interface PublisherRepository {
 
     List<Publisher> findAll();
 
+    List<Publisher> findAll(Collection<Long> ids);
+
     Publisher save(Publisher publisher);
+
+    List<Publisher> save(Collection<Publisher> publishers);
 
     void delete(Long id);
 
     void delete(Publisher publisher);
+
+    void delete(Collection<Publisher> publishers);
 
     long count();
 

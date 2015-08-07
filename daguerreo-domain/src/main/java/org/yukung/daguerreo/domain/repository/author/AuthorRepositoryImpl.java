@@ -22,8 +22,12 @@ import org.springframework.stereotype.Repository;
 import org.yukung.daguerreo.domain.model.Author;
 import org.yukung.daguerreo.infrastructure.generated.tables.records.AuthorRecord;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.yukung.daguerreo.infrastructure.generated.tables.Author.*;
 
@@ -51,19 +55,39 @@ public class AuthorRepositoryImpl implements AuthorRepository {
     }
 
     @Override
+    public List<Author> findAll(Collection<Long> ids) {
+        return dsl.selectFrom(AUTHOR)
+                .where(AUTHOR.ID.in(ids))
+                .fetchInto(Author.class);
+    }
+
+    @Override
     public Author save(Author author) {
         AuthorRecord authorRecord;
         if (author.getId() == null) {
             authorRecord = dsl.newRecord(AUTHOR, author);
         } else {
-            authorRecord = dsl.fetchOne(AUTHOR, AUTHOR.ID.eq(author.getId()));
-            if (authorRecord == null) {
-                return null;
-            }
+            AuthorRecord fetched = dsl
+                    .selectFrom(AUTHOR)
+                    .where(AUTHOR.ID.eq(author.getId()))
+                    .forUpdate()
+                    .fetchOne();
+            authorRecord = (fetched != null) ? fetched : dsl.newRecord(AUTHOR, author);
             authorRecord.from(author);
         }
         authorRecord.store();
         return authorRecord.into(Author.class);
+    }
+
+    @Override
+    public List<Author> save(Collection<Author> authors) {
+        if (authors.size() == 1) {
+            return Collections.singletonList(save(authors.iterator().next()));
+        } else {
+            List<Author> result = new ArrayList<>();
+            authors.forEach(author -> result.add(save(author)));
+            return result;
+        }
     }
 
     @Override
@@ -76,6 +100,15 @@ public class AuthorRepositoryImpl implements AuthorRepository {
     @Override
     public void delete(Author author) {
         delete(author.getId());
+    }
+
+    @Override
+    public void delete(Collection<Author> authors) {
+        dsl.deleteFrom(AUTHOR)
+                .where(AUTHOR.ID.in(authors.stream()
+                        .map(Author::getId)
+                        .collect(Collectors.toList())))
+                .execute();
     }
 
     @Override

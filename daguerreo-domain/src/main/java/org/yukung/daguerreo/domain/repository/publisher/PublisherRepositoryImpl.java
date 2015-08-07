@@ -22,8 +22,12 @@ import org.springframework.stereotype.Repository;
 import org.yukung.daguerreo.domain.model.Publisher;
 import org.yukung.daguerreo.infrastructure.generated.tables.records.PublisherRecord;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.yukung.daguerreo.infrastructure.generated.tables.Publisher.*;
 
@@ -51,6 +55,13 @@ public class PublisherRepositoryImpl implements PublisherRepository {
     }
 
     @Override
+    public List<Publisher> findAll(Collection<Long> ids) {
+        return dsl.selectFrom(PUBLISHER)
+                .where(PUBLISHER.ID.in(ids))
+                .fetchInto(Publisher.class);
+    }
+
+    @Override
     public Publisher save(Publisher publisher) {
         PublisherRecord publisherRecord;
         if (publisher.getId() == null) {
@@ -67,6 +78,17 @@ public class PublisherRepositoryImpl implements PublisherRepository {
     }
 
     @Override
+    public List<Publisher> save(Collection<Publisher> publishers) {
+        if (publishers.size() == 1) {
+            return Collections.singletonList(publishers.iterator().next());
+        } else {
+            List<Publisher> result = new ArrayList<>();
+            publishers.forEach(publisher -> result.add(save(publisher)));
+            return result;
+        }
+    }
+
+    @Override
     public void delete(Long id) {
         dsl.deleteFrom(PUBLISHER)
                 .where(PUBLISHER.ID.eq(id))
@@ -76,6 +98,15 @@ public class PublisherRepositoryImpl implements PublisherRepository {
     @Override
     public void delete(Publisher publisher) {
         delete(publisher.getId());
+    }
+
+    @Override
+    public void delete(Collection<Publisher> publishers) {
+        dsl.deleteFrom(PUBLISHER)
+                .where(PUBLISHER.ID.in(publishers.stream()
+                        .map(Publisher::getId)
+                        .collect(Collectors.toList())))
+                .execute();
     }
 
     @Override

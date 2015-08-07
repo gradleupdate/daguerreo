@@ -50,6 +50,33 @@ class PublisherRepositorySpec extends Specification {
     }
 
     @Rollback
+    def "should be registered or updated all authors"() {
+        given:
+        def preSavedPublisher = new Publisher(id: null, name: '事前保存')
+        def saved = repository.save(preSavedPublisher)
+        def expected = '更新後'
+        saved.name = expected
+        def publishers = [
+                new Publisher(id: null, name: '新潮社'),
+                new Publisher(id: null, name: '講談社'),
+                saved,
+                new Publisher(id: null, name: '角川書店')
+        ]
+
+        when:
+        List<Publisher> created = repository.save(publishers)
+
+        then:
+        created.eachWithIndex { publisher, i -> publisher.equals(publishers[i]) }
+
+        and:
+        def updated = repository.findOne(saved.id)
+        updated.present
+
+        updated.map { e -> e.name }.orElse("") == expected
+    }
+
+    @Rollback
     def "should be updated the publisher"() {
         given:
         def publisher = repository.save(new Publisher(id: null, name: '新潮社'))
@@ -70,7 +97,7 @@ class PublisherRepositorySpec extends Specification {
     }
 
     @Rollback
-    def "should be deleted the author by Id"() {
+    def "should be deleted the publisher by Id"() {
         given:
         def publisher = repository.save(new Publisher(id: null, name: '新潮社'))
         def id = publisher.id
@@ -84,7 +111,7 @@ class PublisherRepositorySpec extends Specification {
     }
 
     @Rollback
-    def "should be deleted the author by entity"() {
+    def "should be deleted the publisher by entity"() {
         given:
         def publisher = repository.save(new Publisher(id: null, name: '新潮社'))
         repository.findOne(publisher.id).present
@@ -97,10 +124,24 @@ class PublisherRepositorySpec extends Specification {
     }
 
     @Rollback
+    def "should be deleted all publishers"() {
+        given:
+        def publishers = [new Publisher(id: null, name: '新潮社'), new Publisher(id: null, name: '講談社'), new Publisher(id: null, name: '角川書店')]
+        repository.save(publishers)
+        def allPublishers = repository.findAll()
+
+        when:
+        repository.delete(allPublishers)
+
+        then:
+        repository.findAll(allPublishers.collect { it.id }).size() == 0
+    }
+
+    @Rollback
     def "should be find all publishers"() {
         given:
         def publishers = [new Publisher(id: null, name: '新潮社'), new Publisher(id: null, name: '講談社'), new Publisher(id: null, name: '角川書店')]
-        publishers.each { repository.save(it) }
+        repository.save(publishers)
 
         when:
         List<Publisher> result = repository.findAll()
@@ -113,7 +154,7 @@ class PublisherRepositorySpec extends Specification {
     def "should be to count the number of publishers"() {
         given:
         def publishers = [new Publisher(id: null, name: '新潮社'), new Publisher(id: null, name: '講談社'), new Publisher(id: null, name: '角川書店')]
-        publishers.each { repository.save(it) }
+        repository.save(publishers)
 
         when:
         def count = repository.count()
@@ -123,7 +164,7 @@ class PublisherRepositorySpec extends Specification {
     }
 
     @Rollback
-    def "should be exists by specifed entity"() {
+    def "should be exists by specified entity"() {
         given:
         def existsPublisher = repository.save(new Publisher(id: null, name: '新潮社'))
         def notExistsPublisher = new Publisher(id: null, name: '講談社')

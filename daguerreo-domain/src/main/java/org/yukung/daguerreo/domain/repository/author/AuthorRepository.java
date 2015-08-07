@@ -18,6 +18,7 @@ package org.yukung.daguerreo.domain.repository.author;
 
 import org.yukung.daguerreo.domain.model.Author;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,11 +31,17 @@ public interface AuthorRepository {
 
     List<Author> findAll();
 
+    List<Author> findAll(Collection<Long> ids);
+
     Author save(Author author);
+
+    List<Author> save(Collection<Author> authors);
 
     void delete(Long id);
 
     void delete(Author author);
+
+    void delete(Collection<Author> authors);
 
     long count();
 

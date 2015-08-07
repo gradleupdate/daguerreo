@@ -50,6 +50,33 @@ class AuthorRepositorySpec extends Specification {
     }
 
     @Rollback
+    def "should be registered or updated all authors"() {
+        given:
+        def preSavedAuthor = new Author(id: null, name: '事前保存')
+        def saved = repository.save(preSavedAuthor)
+        def expected = '更新後'
+        saved.name = expected
+        def authors = [
+                new Author(id: null, name: '宮沢賢治'),
+                new Author(id: null, name: '川端康成'),
+                saved,
+                new Author(id: null, name: '芥川龍之介')
+        ]
+
+        when:
+        List<Author> created = repository.save(authors)
+
+        then:
+        created.eachWithIndex { author, i -> author.equals(authors[i]) }
+
+        and:
+        def updated = repository.findOne(saved.id)
+        updated.present
+
+        updated.map { e -> e.name }.orElse("") == expected
+    }
+
+    @Rollback
     def "should be updated the author"() {
         given:
         def author = repository.save(new Author(id: null, name: '川端康成'))
@@ -94,10 +121,24 @@ class AuthorRepositorySpec extends Specification {
     }
 
     @Rollback
+    def "should be deleted all authors"() {
+        given:
+        def authors = [new Author(id: null, name: '宮沢賢治'), new Author(id: null, name: '川端康成'), new Author(id: null, name: '芥川龍之介')]
+        repository.save(authors)
+        def allAuthors = repository.findAll()
+
+        when:
+        repository.delete(allAuthors)
+
+        then:
+        repository.findAll(allAuthors.collect { it.id }).size() == 0
+    }
+
+    @Rollback
     def "should be find all authors"() {
         given:
         def authors = [new Author(id: null, name: '宮沢賢治'), new Author(id: null, name: '川端康成'), new Author(id: null, name: '芥川龍之介')]
-        authors.each { repository.save(it) }
+        repository.save(authors)
 
         when:
         List<Author> result = repository.findAll()
@@ -110,7 +151,7 @@ class AuthorRepositorySpec extends Specification {
     def "should be to count the number of authors"() {
         given:
         def authors = [new Author(id: null, name: '宮沢賢治'), new Author(id: null, name: '川端康成'), new Author(id: null, name: '芥川龍之介')]
-        authors.each { repository.save(it) }
+        repository.save(authors)
 
         when:
         def count = repository.count()
