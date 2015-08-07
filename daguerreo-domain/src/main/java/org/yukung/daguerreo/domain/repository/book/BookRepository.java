@@ -18,6 +18,7 @@ package org.yukung.daguerreo.domain.repository.book;
 
 import org.yukung.daguerreo.domain.model.Book;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,11 +31,15 @@ public interface BookRepository {
 
     List<Book> findAll();
 
+    List<Book> findAll(Collection<Long> ids);
+
     Book save(Book book);
 
     void delete(Long id);
 
     void delete(Book book);
+
+    void delete(Collection<Book> books);
 
     long count();
 
