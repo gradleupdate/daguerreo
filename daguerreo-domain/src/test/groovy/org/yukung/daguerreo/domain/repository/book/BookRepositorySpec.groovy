@@ -68,7 +68,6 @@ class BookRepositorySpec extends Specification {
 
         then:
         bookRepository.findOne(created.id).present
-        println bookRepository.findOne(created.id).get().id
     }
 
     def "FindAll"() {

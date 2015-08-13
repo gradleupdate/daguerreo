@@ -17,10 +17,15 @@
 package org.yukung.daguerreo.domain.repository.book;
 
 import org.jooq.DSLContext;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+import org.yukung.daguerreo.domain.model.Author;
 import org.yukung.daguerreo.domain.model.Book;
+import org.yukung.daguerreo.domain.model.Publisher;
+import org.yukung.daguerreo.infrastructure.generated.tables.records.AuthorRecord;
 import org.yukung.daguerreo.infrastructure.generated.tables.records.BookRecord;
+import org.yukung.daguerreo.infrastructure.generated.tables.records.PublisherRecord;
 
 import java.util.Collection;
 import java.util.List;
@@ -39,15 +44,27 @@ public class BookRepositoryImpl implements BookRepository {
     @Autowired
     private DSLContext dsl;
 
+    @Autowired
+    private ModelMapper mapper;
+
     @Override
     public Optional<Book> findOne(Long id) {
-        return Optional.ofNullable(dsl.selectFrom(BOOK
-                .join(AUTHOR)
-                .on(BOOK.AUTHOR_ID.eq(AUTHOR.ID))
-                .join(PUBLISHER)
-                .on(BOOK.PUBLISHER_ID.eq(PUBLISHER.ID)))
+        Book book = dsl
+                .selectFrom(BOOK
+                        .join(AUTHOR)
+                        .on(BOOK.AUTHOR_ID.eq(AUTHOR.ID))
+                        .join(PUBLISHER)
+                        .on(BOOK.PUBLISHER_ID.eq(PUBLISHER.ID)))
                 .where(BOOK.ID.eq(id))
-                .fetchOneInto(Book.class));
+                .fetchOne(record -> {
+                    Book b = record.into(Book.class);
+                    AuthorRecord authorRecord = record.into(AUTHOR);
+                    PublisherRecord publisherRecord = record.into(PUBLISHER);
+                    b.setAuthor(mapper.map(authorRecord, Author.class));
+                    b.setPublisher(mapper.map(publisherRecord, Publisher.class));
+                    return b;
+                });
+        return Optional.ofNullable(book);
     }
 
     @Override
@@ -65,8 +82,7 @@ public class BookRepositoryImpl implements BookRepository {
         BookRecord bookRecord;
         if (book.getId() == null) {
             bookRecord = dsl.newRecord(BOOK, book);
-            bookRecord.setAuthorId(book.getAuthor().getId());
-            bookRecord.setPublisherId(book.getPublisher().getId());
+            mapper.map(book, bookRecord);
         } else {
             BookRecord fetched = dsl.selectFrom(BOOK)
                     .where(BOOK.ID.eq(book.getId()))
@@ -74,9 +90,7 @@ public class BookRepositoryImpl implements BookRepository {
                     .fetchOne();
             bookRecord = (fetched != null) ? fetched : dsl.newRecord(BOOK, book);
             bookRecord.from(book);
-            // TODO この変換は ModelMapper 使うと自動でできる
-            bookRecord.setAuthorId(book.getAuthor().getId());
-            bookRecord.setPublisherId(book.getPublisher().getId());
+            mapper.map(book, bookRecord);
         }
         bookRecord.store();
         return bookRecord.into(Book.class);
